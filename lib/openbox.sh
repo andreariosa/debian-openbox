@@ -104,10 +104,7 @@ configure_display_resolution() {
 
     if command -v xrandr >/dev/null 2>&1; then
         echo "Available display outputs and modes:"
-        if ! xrandr --query | awk '
-/ connected/ {out=$1; print out ":"; next}
-/^[0-9]+x[0-9]+/ {print "  " $1}
-'; then
+        if ! xrandr --query | awk '/ connected/ {print $1, $2, $3, $4}'; then
             warn "Failed to read display modes via xrandr"
         fi
     else
