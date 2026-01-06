@@ -86,8 +86,66 @@ copy_theme_files() {
 
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    apt_install_progress xorg openbox obconf menu polybar nitrogen picom lxappearance
+    apt_install_progress xorg openbox obconf menu polybar nitrogen picom lxappearance x11-xserver-utils
+    configure_display_resolution || warn "Resolution configuration skipped"
     success "Openbox installed"
+}
+
+configure_display_resolution() {
+    if $YES_MODE; then
+        log "Non-interactive mode: skipping resolution selection."
+        return 0
+    fi
+
+    if ! ask "Configure display resolution for Openbox autostart?"; then
+        log "Resolution: skipped"
+        return 0
+    fi
+
+    local output
+    local mode
+    local rate
+    read -rp "Enter display output name (e.g. HDMI-1) - blank to skip: " output
+    if [[ -z "$output" ]]; then
+        log "Resolution: skipped"
+        return 0
+    fi
+    if [[ ! "$output" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        warn "Invalid output name: $output"
+        return 0
+    fi
+
+    read -rp "Enter resolution (e.g. 1920x1080) - blank to skip: " mode
+    if [[ -z "$mode" ]]; then
+        log "Resolution: skipped"
+        return 0
+    fi
+    if [[ ! "$mode" =~ ^[0-9]+x[0-9]+$ ]]; then
+        warn "Invalid resolution: $mode"
+        return 0
+    fi
+
+    read -rp "Enter refresh rate (e.g. 60) - blank for default: " rate
+    if [[ -n "$rate" ]] && [[ ! "$rate" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        warn "Invalid refresh rate: $rate"
+        return 0
+    fi
+
+    local ob_dir="$INVOKER_HOME/.config/openbox"
+    local res_file="$ob_dir/resolution.sh"
+    mkdir -p "$ob_dir"
+    {
+        echo "#!/bin/sh"
+        if [[ -n "$rate" ]]; then
+            printf 'xrandr --output "%s" --mode "%s" --rate "%s"\n' "$output" "$mode" "$rate"
+        else
+            printf 'xrandr --output "%s" --mode "%s"\n' "$output" "$mode"
+        fi
+    } > "$res_file"
+    chown "$INVOKER":"$INVOKER" "$res_file" 2>/dev/null || true
+    chmod 755 "$res_file" 2>/dev/null || true
+    success "Resolution config saved to $res_file"
+    return 0
 }
 
 session_menu() {
