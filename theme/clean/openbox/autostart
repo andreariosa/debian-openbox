@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if command -v polybar >/dev/null 2>&1; then
+    polybar main &
+fi
+
+if command -v picom >/dev/null 2>&1; then
+    picom &
+fi
+
+if command -v nitrogen >/dev/null 2>&1; then
+    nitrogen --restore &
+fi
