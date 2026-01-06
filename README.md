@@ -42,6 +42,7 @@ Recommended configuration for a minimal Debian setup:
 
 ```bash
 su -
+apt install -y sudo
 usermod -aG sudo <username>
 reboot
 ```
@@ -49,7 +50,7 @@ reboot
 4) Install git and clone the repo:
 
 ```bash
-sudo apt install git
+sudo apt install -y git
 git clone https://github.com/andreariosa/debian-openbox
 cd debian-openbox
 ```
