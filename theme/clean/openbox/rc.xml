@@ -38,6 +38,21 @@
   </theme>
   <keyboard>
     <chainQuitKey>C-g</chainQuitKey>
+    <keybind key="A-F4">
+      <action name="Close"/>
+    </keybind>
+    <keybind key="A-F9">
+      <action name="Iconify"/>
+    </keybind>
+    <keybind key="A-F10">
+      <action name="ToggleMaximize"/>
+    </keybind>
+    <keybind key="A-F7">
+      <action name="Move"/>
+    </keybind>
+    <keybind key="A-F8">
+      <action name="Resize"/>
+    </keybind>
     <keybind key="W-Return">
       <action name="Execute">
         <command>x-terminal-emulator</command>
@@ -64,6 +79,20 @@
     <dragThreshold>8</dragThreshold>
     <doubleClickTime>200</doubleClickTime>
     <context name="Frame">
+      <mousebind button="A-Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
       <mousebind button="W-Left" action="Drag">
         <action name="Move"/>
       </mousebind>
@@ -188,6 +217,12 @@
       <mousebind button="Right" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Drag">
+        <action name="Resize"/>
       </mousebind>
     </context>
     <context name="Desktop">
