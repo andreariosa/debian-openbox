@@ -68,6 +68,78 @@ run() {
     return 0
 }
 
+run_with_output() {
+    if [[ $# -eq 0 ]]; then
+        error "run_with_output: missing command"
+        return 1
+    fi
+    local cmd_display=""
+    local part
+    for part in "$@"; do
+        cmd_display+="$(printf '%q ' "$part")"
+    done
+    cmd_display="${cmd_display% }"
+    log "CMD: $cmd_display"
+    local -a env_kv=()
+    local -a cmd=()
+    local arg
+    for arg in "$@"; do
+        if [[ ${#cmd[@]} -eq 0 ]] && [[ "$arg" == *=* ]]; then
+            env_kv+=("$arg")
+        else
+            cmd+=("$arg")
+        fi
+    done
+    if [[ ${#cmd[@]} -eq 0 ]]; then
+        error "run_with_output: missing command"
+        return 1
+    fi
+    if [[ ${#env_kv[@]} -gt 0 ]]; then
+        if ! env "${env_kv[@]}" "${cmd[@]}" 2>&1 | tee -a "$LOG_FILE"; then
+            error "Command failed: $cmd_display"
+            tail -n 5 "$LOG_FILE" || true
+            return 1
+        fi
+        return 0
+    fi
+    if ! "${cmd[@]}" 2>&1 | tee -a "$LOG_FILE"; then
+        error "Command failed: $cmd_display"
+        tail -n 5 "$LOG_FILE" || true
+        return 1
+    fi
+    return 0
+}
+
+apt_install() {
+    if $YES_MODE; then
+        run env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
+            apt-get install -y -o Dpkg::Use-Pty=0 "$@"
+    else
+        run apt-get install "$@"
+    fi
+}
+
+apt_install_progress() {
+    if $YES_MODE; then
+        if ! run_with_output env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
+            apt-get install -y --show-progress -o Dpkg::Use-Pty=0 "$@"; then
+            run env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
+                apt-get install -y -o Dpkg::Use-Pty=0 "$@"
+        fi
+    else
+        if ! run_with_output apt-get install --show-progress "$@"; then
+            run apt-get install "$@"
+        fi
+    fi
+}
+
+package_available() {
+    local pkg="$1"
+    local candidate
+    candidate="$(LC_ALL=C apt-cache policy "$pkg" 2>/dev/null | awk '/^Candidate:/ {print $2; exit}')"
+    [[ -n "$candidate" && "$candidate" != "(none)" ]]
+}
+
 # Generic
 
 pause() {

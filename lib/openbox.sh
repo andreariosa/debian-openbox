@@ -86,8 +86,101 @@ copy_theme_files() {
 
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    run apt-get install -y openbox obconf polybar nitrogen picom lxappearance menu
+    apt_install_progress openbox obconf polybar nitrogen picom lxappearance menu
     success "Openbox installed"
+}
+
+session_menu() {
+    while true; do
+        clear
+        echo "=== Session Defaults ==="
+        echo "1) Set Openbox as default session"
+        echo "2) Restore previous session defaults"
+        echo "0) Back"
+        read -rp "> " c
+        case "$c" in
+            1) set_openbox_default_session; pause ;;
+            2) restore_previous_session; pause ;;
+            0) break ;;
+            *) echo "Invalid"; pause ;;
+        esac
+    done
+}
+
+set_openbox_default_session() {
+    local ob_session
+    ob_session="$(command -v openbox-session || true)"
+    if [[ -z "$ob_session" ]]; then
+        error "openbox-session not found. Install Openbox first."
+        return 1
+    fi
+
+    if command -v update-alternatives >/dev/null 2>&1; then
+        local prev
+        prev="$(update-alternatives --query x-session-manager 2>/dev/null | awk -F': ' '/^Value:/{print $2; exit}')"
+        if [[ -n "$prev" ]]; then
+            echo "$prev" > "$BASE_DIR/x-session-manager.prev"
+        fi
+        run update-alternatives --set x-session-manager "$ob_session"
+    fi
+
+    if [[ -d /var/lib/AccountsService/users ]]; then
+        local as_file="/var/lib/AccountsService/users/$INVOKER"
+        if [[ -f "$as_file" ]]; then
+            cp -a "$as_file" "$BASE_DIR/AccountsService.$INVOKER.bak" || true
+        fi
+        if grep -q '^\[User\]' "$as_file" 2>/dev/null; then
+            if grep -q '^XSession=' "$as_file" 2>/dev/null; then
+                sed -i -E 's/^XSession=.*/XSession=openbox/' "$as_file"
+            else
+                sed -i -E '/^\[User\]/a XSession=openbox' "$as_file"
+            fi
+        else
+            {
+                echo "[User]"
+                echo "XSession=openbox"
+            } > "$as_file"
+        fi
+    fi
+
+    if [[ -f /etc/lightdm/lightdm.conf ]]; then
+        cp -a /etc/lightdm/lightdm.conf "$BASE_DIR/lightdm.conf.bak" || true
+        if grep -q '^\[Seat:\*\]' /etc/lightdm/lightdm.conf; then
+            if grep -q '^user-session=' /etc/lightdm/lightdm.conf; then
+                sed -i -E 's/^user-session=.*/user-session=openbox/' /etc/lightdm/lightdm.conf
+            else
+                sed -i -E '/^\[Seat:\*\]/a user-session=openbox' /etc/lightdm/lightdm.conf
+            fi
+        else
+            {
+                echo
+                echo "[Seat:*]"
+                echo "user-session=openbox"
+            } >> /etc/lightdm/lightdm.conf
+        fi
+    fi
+
+    success "Default session set to Openbox"
+}
+
+restore_previous_session() {
+    if [[ -f "$BASE_DIR/x-session-manager.prev" ]] && command -v update-alternatives >/dev/null 2>&1; then
+        local prev
+        prev="$(cat "$BASE_DIR/x-session-manager.prev")"
+        if [[ -n "$prev" ]]; then
+            run update-alternatives --set x-session-manager "$prev"
+        fi
+    fi
+
+    if [[ -f "$BASE_DIR/AccountsService.$INVOKER.bak" ]]; then
+        cp -a "$BASE_DIR/AccountsService.$INVOKER.bak" "/var/lib/AccountsService/users/$INVOKER" || true
+    fi
+
+    if [[ -f "$BASE_DIR/lightdm.conf.bak" ]]; then
+        cp -a "$BASE_DIR/lightdm.conf.bak" /etc/lightdm/lightdm.conf || true
+    fi
+
+    success "Previous session defaults restored (if backups existed)"
 }
 
 theme_menu() {

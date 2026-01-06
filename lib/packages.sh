@@ -110,7 +110,7 @@ progress_install() {
     for pkg in "${pkgs[@]}"; do
         count=$((count + 1))
         echo -ne "${BOLD}Installing $pkg (${count}/${total})...${RESET}\r"
-        if ! run env DEBIAN_FRONTEND=noninteractive apt-get install -y "$pkg"; then
+        if ! apt_install "$pkg"; then
             error "Failed to install $pkg"
             failed_pkgs+=("$pkg")
         fi

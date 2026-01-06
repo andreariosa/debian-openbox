@@ -1,29 +1,28 @@
-A small, script-driven Debian post-install helper that sets up an Openbox-based
-desktop environment with optional themes and helper components.
+A small, script-driven Debian post-install helper that sets up an Openbox-based desktop environment with optional themes and helper components.
 
 This repository provides a convenient, idempotent set of shell scripts to:
 
-- configure basic system settings (locale, timezone, apt sources)
-- install Openbox and optional components (display manager, GPU drivers, audio)
-- apply user configuration themes (Openbox, polybar, picom)
+- Configure basic system settings (locale, timezone, apt sources).
+- Install Openbox and optional components (display manager, GPU drivers, audio).
+- Apply user configuration themes (Openbox, polybar, picom).
 
 ## Highlights
 
 - Intent: fast post-install setup for Debian systems using Openbox.
 - Scripts live under `lib/` and are sourced by the top-level `install.sh`.
-- Themes are kept in `theme/` (clean, dark, light). Theme files are copied into
-  the invoking user's `~/.config/` directory when applying a theme.
+- Themes are kept in `theme/` (clean, dark, light). Theme files are copied into the invoking user's `~/.config/` directory when applying a theme.
 
 ## Quick start
 
-Run on a Debian system as root (recommended via sudo). From the repo root:
+Run on a Debian system as root (recommended via sudo). From the repo root, make the installation script executable:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y git
-git clone https://github.com/andreariosa/debian-openbox.git
-cd debian-openbox
 chmod +x install.sh
+```
+
+Interactive mode:
+
+```bash
 sudo ./install.sh
 ```
 
@@ -33,14 +32,34 @@ Non-interactive (auto-yes) mode:
 sudo ./install.sh --yes
 ```
 
+## Install Debian and prerequisites
+
+Recommended configuration for a minimal Debian setup:
+
+1) Install Debian netinstall image.
+2) During install, do not select `Debian desktop environment`; only select `standard system utilities`.
+3) After the first boot, add your user to sudo, then reboot:
+
+```bash
+su -
+usermod -aG sudo <username>
+reboot
+```
+
+4) Install git and clone the repo:
+
+```bash
+sudo apt install git
+git clone https://github.com/andreariosa/debian-openbox
+cd debian-openbox
+```
+
 Notes:
 
-- The script expects to be run on Debian or a Debian-derivative where package
-  names (e.g. `polybar`, `picom`) are available from apt.
-- Some optional packages (e.g. `code`) require external repositories. Either
-  add the repo first or remove those entries from `packages.conf`.
-- Package categories are displayed in the same order as they appear in
-  `packages.conf`. Duplicate package entries are ignored.
+- The script expects to be run on Debian or a Debian-derivative where package names (e.g. `polybar`, `picom`) are available from apt.
+- Some optional packages (e.g. `code`) require external repositories. Either add the repo first or remove those entries from `packages.conf`.
+- Package categories are displayed in the same order as they appear in `packages.conf`. Duplicate package entries are ignored.
+- The main menu includes "Session defaults (Openbox)" to set Openbox as the default session or restore the previous default.
 
 ## Repository layout
 
@@ -56,31 +75,21 @@ Notes:
 
 ## Themes & panel
 
-This project ships minimal theme templates under `theme/`. The installer can
-copy these templates into the invoking user's `~/.config/` directory when you
-apply a theme via the interactive menu.
+This project ships minimal theme templates under `theme/`. The installer can copy these templates into the invoking user's `~/.config/` directory when you apply a theme via the interactive menu.
 
-Note: the project uses `polybar` in place of `tint2` for the panel. The repo
-does not ship a full `polybar` config; customize `~/.config/polybar/config` to
-match your bar name and launch command.
+Note: the project uses `polybar` in place of `tint2` for the panel. The repo does not ship a full `polybar` config; customize `~/.config/polybar/config` to match your bar name and launch command.
 
 ## Customization
 
-- To add a theme: create a `clean`, `dark`, or `light` subdirectory under
-  `theme/` and add `openbox/`, `polybar/`, and `picom/` subfolders with files.
-- To change packaged components, edit the apt commands in `lib/openbox.sh` or
-  the related functions in `lib/components.sh`.
+- To add a theme: create a `clean`, `dark`, or `light` subdirectory under `theme/` and add `openbox/`, `polybar/`, and `picom/` subfolders with files.
+- To change packaged components, edit the apt commands in `lib/openbox.sh` or the related functions in `lib/components.sh`.
 - Non-interactive automation: use `--yes` / `-y` when running `install.sh`.
 
 ## Troubleshooting
 
-- If a package fails to install, check `/home/<invoker>/.postinstall/install.log`
-  (the exact path is printed by the installer). The scripts log stdout/stderr
-  for run commands into this log.
-- If theme files are not applied, verify permissions and that `$INVOKER_HOME`
-  is writable by the installer or adjusted afterward.
-- If an optional package is missing, confirm the package exists in your Debian
-  version or add the required external repo before running the installer.
+- If a package fails to install, check `/home/<invoker>/.postinstall/install.log` (the exact path is printed by the installer). The scripts log stdout/stderr for run commands into this log.
+- If theme files are not applied, verify permissions and that `$INVOKER_HOME` is writable by the installer or adjusted afterward.
+- If an optional package is missing, confirm the package exists in your Debian version or add the required external repo before running the installer.
 
 ## Contributing
 
@@ -92,7 +101,5 @@ Contributions are welcome. When modifying behavior or adding new themes:
 
 ## Notes & safety
 
-- These scripts perform system modifications and install packages as root.
-  Review the scripts before running on production systems.
-- The project aims to be conservative about overwriting user files: the theme
-  application backs up existing config files under `~/.postinstall/backups/`.
+- These scripts perform system modifications and install packages as root. Review the scripts before running on production systems.
+- The project aims to be conservative about overwriting user files: the theme application backs up existing config files under `~/.postinstall/backups/`.
