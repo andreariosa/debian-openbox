@@ -102,6 +102,18 @@ configure_display_resolution() {
         return 0
     fi
 
+    if command -v xrandr >/dev/null 2>&1; then
+        echo "Available display outputs and modes:"
+        if ! xrandr --query | awk '
+/ connected/ {out=$1; print out ":"; next}
+/^[0-9]+x[0-9]+/ {print "  " $1}
+'; then
+            warn "Failed to read display modes via xrandr"
+        fi
+    else
+        warn "xrandr not found; available outputs/modes cannot be listed"
+    fi
+
     local output
     local mode
     local rate
