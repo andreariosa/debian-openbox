@@ -276,13 +276,13 @@ theme_menu() {
 apply_theme_configs() {
     # Apply selected config theme (copy to user's ~/.config)
     local theme="$1"   #clean/dark/light
-    
+
     # Validate theme input
     if [[ ! "$theme" =~ ^(clean|dark|light)$ ]]; then
         error "Invalid theme selection: $theme"
         return 1
     fi
-    
+
     # Sanitize paths
     local src
     src="$(realpath -q "$BASE_DIR/config/$theme" 2>/dev/null)"

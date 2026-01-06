@@ -112,7 +112,7 @@ main_menu() {
         echo "6) Session defaults (Openbox)"
         echo "7) Show install log ($LOG_FILE)"
         echo "0) Exit"
-        
+
         if ! read -r -p "> " choice; then
             error "Failed to read user input"
             return 1
@@ -126,32 +126,32 @@ main_menu() {
         fi
 
         case "$choice" in
-            1) 
+            1)
                 if ! system_config_menu; then
                     error "System configuration failed"
-                fi 
+                fi
                 ;;
-            2) 
+            2)
                 if ! components_menu; then
                     error "Component configuration failed"
-                fi 
+                fi
                 ;;
-            3) 
+            3)
                 if ! install_openbox; then
                     error "Openbox installation failed"
                 fi
-                pause 
+                pause
                 ;;
-            4) 
+            4)
                 if ! theme_menu; then
                     error "Theme application failed"
-                fi 
+                fi
                 ;;
-            5) 
+            5)
                 if ! parse_packages_conf; then
                     error "Package installation failed"
                 fi
-                pause 
+                pause
                 ;;
             6)
                 if ! session_menu; then
@@ -166,11 +166,11 @@ main_menu() {
                 fi
                 if ! less "$LOG_FILE"; then
                     warn "Failed to display log file"
-                fi 
+                fi
                 ;;
-            0) 
+            0)
                 log "Exiting normally"
-                return 0 
+                return 0
                 ;;
         esac
     done

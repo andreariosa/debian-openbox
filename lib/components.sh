@@ -65,7 +65,7 @@ gpu_drivers() {
         1) apt_install nvidia-driver ;;
         2) apt_install firmware-amd-graphics ;;
         3) apt_install xserver-xorg-video-intel ;;
-        4) 
+        4)
             if ! package_available virtualbox-guest-dkms; then
                 warn "VirtualBox guest packages not available in current sources"
                 warn "Enable the VirtualBox repo or use a Debian source that provides them"

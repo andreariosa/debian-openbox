@@ -223,7 +223,7 @@ configure_locale() {
                 break
             fi
         done
-        
+
         if $valid; then
             break
         fi

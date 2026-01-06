@@ -102,10 +102,10 @@ progress_install() {
     local total=${#pkgs[@]}
     local count=0
     local failed_pkgs=()
-    
+
     ensure_apt_cache || true
     log "Package validation disabled; apt will report missing packages during install"
-    
+
     total=${#pkgs[@]}
     for pkg in "${pkgs[@]}"; do
         count=$((count + 1))
@@ -115,7 +115,7 @@ progress_install() {
             failed_pkgs+=("$pkg")
         fi
     done
-    
+
     echo
     if [[ ${#failed_pkgs[@]} -eq 0 ]]; then
         success "All selected packages installed successfully."

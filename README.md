@@ -36,9 +36,9 @@ sudo ./install.sh --yes
 
 Recommended configuration for a minimal Debian setup:
 
-1) Install Debian netinstall image.
-2) During install, do not select `Debian desktop environment`; only select `standard system utilities`.
-3) After the first boot, add your user to sudo, then reboot:
+1. Install Debian netinstall image.
+2. During install, do not select `Debian desktop environment`; only select `standard system utilities`.
+3. After the first boot, add your user to sudo, then reboot:
 
 ```bash
 su -
@@ -47,7 +47,7 @@ usermod -aG sudo <username>
 reboot
 ```
 
-4) Install git and clone the repo:
+4. Install git and clone the repo:
 
 ```bash
 sudo apt install -y git
