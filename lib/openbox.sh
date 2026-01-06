@@ -86,7 +86,7 @@ copy_theme_files() {
 
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    apt_install_progress openbox obconf polybar nitrogen picom lxappearance menu
+    apt_install_progress xorg openbox obconf menu polybar nitrogen picom lxappearance
     success "Openbox installed"
 }
 
@@ -158,6 +158,13 @@ set_openbox_default_session() {
                 echo "user-session=openbox"
             } >> /etc/lightdm/lightdm.conf
         fi
+    fi
+
+    if [[ ! -f /etc/X11/default-display-manager ]]; then
+        log "No display manager detected; enabling startx fallback"
+        echo "exec openbox-session" > "$INVOKER_HOME/.xinitrc"
+        chown "$INVOKER":"$INVOKER" "$INVOKER_HOME/.xinitrc" 2>/dev/null || true
+        chmod 644 "$INVOKER_HOME/.xinitrc" 2>/dev/null || true
     fi
 
     success "Default session set to Openbox"

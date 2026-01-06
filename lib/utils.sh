@@ -110,12 +110,45 @@ run_with_output() {
     return 0
 }
 
+run_with_tty_log() {
+    if [[ $# -eq 0 ]]; then
+        error "run_with_tty_log: missing command"
+        return 1
+    fi
+    local cmd_display=""
+    local part
+    for part in "$@"; do
+        cmd_display+="$(printf '%q ' "$part")"
+    done
+    cmd_display="${cmd_display% }"
+    log "CMD: $cmd_display"
+    if command -v script >/dev/null 2>&1; then
+        local cmd_str=""
+        for part in "$@"; do
+            cmd_str+="$(printf '%q ' "$part")"
+        done
+        cmd_str="${cmd_str% }"
+        if ! script -q -a -f -c "$cmd_str" "$LOG_FILE"; then
+            error "Command failed: $cmd_display"
+            tail -n 5 "$LOG_FILE" || true
+            return 1
+        fi
+        return 0
+    fi
+    warn "script not found; running without live log"
+    if ! "$@"; then
+        error "Command failed: $cmd_display"
+        return 1
+    fi
+    return 0
+}
+
 apt_install() {
     if $YES_MODE; then
         run env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
             apt-get install -y -o Dpkg::Use-Pty=0 "$@"
     else
-        run apt-get install "$@"
+        run_with_tty_log apt-get install "$@"
     fi
 }
 
@@ -127,9 +160,7 @@ apt_install_progress() {
                 apt-get install -y -o Dpkg::Use-Pty=0 "$@"
         fi
     else
-        if ! run_with_output apt-get install --show-progress "$@"; then
-            run apt-get install "$@"
-        fi
+        run_with_tty_log apt-get install --show-progress "$@"
     fi
 }
 
