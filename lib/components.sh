@@ -1,11 +1,15 @@
 # lib/components.sh
+#
+# Optional hardware and system component installation:
+# display managers, GPU drivers, audio stacks, and system snapshots.
 
-# Prevent accidental standalone execution
+# Prevent accidental standalone execution.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "This script must be sourced, not executed directly."
     exit 1
 fi
 
+# Display components configuration submenu and handle user selections.
 components_menu() {
     while true; do
         clear
@@ -27,6 +31,7 @@ components_menu() {
     done
 }
 
+# Install a display manager (LightDM or SDDM) or skip.
 choose_display_manager() {
     if $YES_MODE; then
         apt_install lightdm
@@ -46,6 +51,7 @@ choose_display_manager() {
     esac
 }
 
+# Install GPU drivers: NVIDIA, AMD, Intel, or VirtualBox guest utilities.
 gpu_drivers() {
     if $YES_MODE; then
         log "Auto-mode: installing firmware-misc-nonfree"
@@ -78,6 +84,7 @@ gpu_drivers() {
     esac
 }
 
+# Install audio server stack: PipeWire (modern), PulseAudio (legacy), or ALSA only.
 audio_stack() {
     if $YES_MODE; then
         log "Auto-mode: installing PipeWire stack"
@@ -100,6 +107,7 @@ audio_stack() {
     esac
 }
 
+# Optionally install Timeshift for system snapshot and restore functionality.
 system_snapshots() {
     if ask "Install Timeshift for system snapshots?"; then
         apt_install timeshift

@@ -1,11 +1,16 @@
 # lib/openbox.sh
+#
+# Openbox desktop installation, configuration, and theme deployment functions.
+# Handles Openbox and related components (compositor, panel, window manager utilities).
 
-# Prevent accidental standalone execution
+# Prevent accidental standalone execution.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "This script must be sourced, not executed directly."
     exit 1
 fi
 
+# Copy theme configuration files with validation and safe permissions handling.
+# Args: $1 source directory, $2 target directory.
 copy_theme_files() {
     local src_dir="$1"
     local target_dir="$2"
@@ -84,6 +89,8 @@ copy_theme_files() {
     shopt -u nullglob
 }
 
+# Install Openbox window manager, desktop stack (X11, utilities), and optional components
+# (compositor, panel, wallpaper manager). Optionally configure display resolution.
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
     apt_install_progress xorg x11-xserver-utils openbox obconf menu nitrogen picom polybar
@@ -91,6 +98,8 @@ install_openbox() {
     success "Openbox installed"
 }
 
+# Optionally configure display resolution via xrandr in Openbox autostart.
+# Generates a resolution.sh script in ~/.config/openbox for later invocation.
 configure_display_resolution() {
     if $YES_MODE; then
         log "Non-interactive mode: skipping resolution selection."
@@ -157,6 +166,7 @@ configure_display_resolution() {
     return 0
 }
 
+# Display session defaults submenu for managing X session manager configuration.
 session_menu() {
     while true; do
         clear
@@ -174,6 +184,8 @@ session_menu() {
     done
 }
 
+# Configure Openbox as the default X session via update-alternatives,
+# LightDM preferences, and AccountsService. Backup existing settings.
 set_openbox_default_session() {
     local ob_session
     ob_session="$(command -v openbox-session || true)"
@@ -237,6 +249,7 @@ set_openbox_default_session() {
     success "Default session set to Openbox"
 }
 
+# Restore previous X session defaults from backups created during installation.
 restore_previous_session() {
     if [[ -f "$BASE_DIR/x-session-manager.prev" ]] && command -v update-alternatives >/dev/null 2>&1; then
         local prev
@@ -257,6 +270,7 @@ restore_previous_session() {
     success "Previous session defaults restored (if backups existed)"
 }
 
+# Display theme selection menu for Openbox, polybar, and picom configuration templates.
 theme_menu() {
     clear
     echo "Choose configuration theme to apply - blank to skip"
@@ -275,9 +289,10 @@ theme_menu() {
     esac
 }
 
+# Apply selected theme (clean/dark/light) by copying configuration templates to ~/.config/.
+# Backs up existing configs before overwriting. Automatically generates GTK settings.
 apply_theme_configs() {
-    # Apply selected config theme (copy to user's ~/.config)
-    local theme="$1"   #clean/dark/light
+    local theme="$1"   # clean|dark|light
 
     # Validate theme input
     if [[ ! "$theme" =~ ^(clean|dark|light)$ ]]; then
@@ -312,6 +327,7 @@ apply_theme_configs() {
     fi
 
     log "Applying theme '$theme' configs to user $INVOKER"
+
     # Map typical locations
     local ob_dir="$INVOKER_HOME/.config/openbox"
     local polybar_dir="$INVOKER_HOME/.config/polybar"
@@ -319,6 +335,7 @@ apply_theme_configs() {
 
     mkdir -p "$ob_dir" "$polybar_dir" "$picom_dir"
     chown -R "$INVOKER":"$INVOKER" "$ob_dir" "$polybar_dir" "$picom_dir" 2>/dev/null || true
+
     # Copy files but ask before overwriting (auto-yes allowed)
     copy_theme_files "$src/openbox" "$ob_dir"
     copy_theme_files "$src/polybar" "$polybar_dir"
@@ -331,8 +348,9 @@ apply_theme_configs() {
     return 0
 }
 
+# Auto-generate GTK2/3/4 configuration files based on selected theme.
+# Applies theme-specific defaults (Adwaita/Adwaita-dark) without external managers.
 generate_gtk_configs() {
-    # Generate GTK configuration files for GTK2/3/4 based on selected theme
     local theme="$1"
 
     # Define defaults per theme choice (Debian base-friendly values)
@@ -387,8 +405,9 @@ generate_gtk_configs() {
     return 0
 }
 
+# Interactive customization of GTK theme, icon theme, font, and cursor theme.
+# Scans system for available themes and allows user selection, with sensible fallbacks.
 customize_gtk_configs() {
-    # Interactive customization of GTK theme/icon/font/cursor based on installed options
     local home="$INVOKER_HOME"
     if $YES_MODE; then
         log "Non-interactive mode: applying GTK customization from env vars or defaults"
@@ -462,9 +481,8 @@ customize_gtk_configs() {
 
     # Helper to present a numbered list and read a selection.
     # Usage: choose <array-name> <prompt-text> [out-var]
-    # If [out-var] is provided the chosen value is written to that variable
-    # and the prompts are printed to the terminal (not captured). If no
-    # out-var is provided the chosen value is printed to stdout (legacy behavior).
+    # If [out-var] is provided the chosen value is written to that variable and the prompts are printed to the terminal (not captured).
+    # If no [out-var] is provided the chosen value is printed to stdout (legacy behavior).
     choose() {
         local -n _arr=$1
         local prompt_text="$2"

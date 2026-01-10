@@ -1,44 +1,56 @@
-A small, script-driven Debian post-install helper that sets up an Openbox-based desktop environment with optional themes and helper components.
+_A small, script-driven Debian post-install helper that sets up an Openbox-based desktop environment with optional themes and helper components._
 
-This repository provides a convenient, idempotent set of shell scripts to:
+## Scope
 
-- Configure basic system settings (locale, timezone, apt sources).
-- Install Openbox and optional components (display manager, GPU drivers, audio).
-- Apply user configuration themes (Openbox, polybar, picom).
+- Configure system locale, timezone, and package sources.
+- Install and configure Openbox with minimal dependencies.
+- Deploy optional components (display manager, GPU drivers, audio stack).
+- Apply user configuration themes (Openbox, Picom, Polybar).
+- Provide idempotent, reusable shell library for automation.
 
-## Highlights
+## Non-goals
 
-- Intent: fast post-install setup for Debian systems using Openbox.
-- Scripts live under `lib/` and are sourced by the top-level `install.sh`.
-- Themes are kept in `theme/` (clean, dark, light). Theme files are copied into the invoking user's `~/.config/` directory when applying a theme.
+- Heavy desktop environment setup or feature bloat.
+- Graphical package manager or advanced configuration tools.
+- Distribution of binary packages or rolling releases.
+- Support for non-Debian systems (though derivatives may work).
 
-## Quick start
+## Overview
 
-Run on a Debian system as root (recommended via sudo). From the repo root, make the installation script executable:
+The installation consists of idempotent shell scripts located in `lib/`, sourced by the main `install.sh` entry point. User themes are stored in `theme/` and copied to `~/.config/` when applied via the interactive menu.
+
+## Installation
+
+### Prerequisites
+
+- Debian system (or compatible derivative) with sudo access.
+- Minimal system installation (excluding pre-installed desktop environments).
+- Git.
+
+### Quick Start
+
+Clone the repository and execute the installation script:
 
 ```bash
+git clone https://github.com/andreariosa/debian-openbox
+cd debian-openbox
 chmod +x install.sh
-```
-
-Interactive mode:
-
-```bash
 sudo ./install.sh
 ```
 
-Non-interactive (auto-yes) mode:
+The installer will present an interactive menu. To automate responses:
 
 ```bash
 sudo ./install.sh --yes
 ```
 
-## Install Debian and prerequisites
+### Recommended Base System
 
-Recommended configuration for a minimal Debian setup:
+Begin with a fresh Debian minimal installation:
 
-1. Install Debian netinstall image.
-2. During install, do not select `Debian desktop environment`; only select `standard system utilities`.
-3. After the first boot, add your user to sudo, then reboot:
+1. Boot the Debian netinstall image.
+2. During installation, deselect `Debian desktop environment` and select only `standard system utilities`.
+3. After first boot, grant sudo privileges to your user:
 
 ```bash
 su -
@@ -47,34 +59,42 @@ usermod -aG sudo <username>
 reboot
 ```
 
-4. Install git and clone the repo:
+4. Install git and clone the repository:
 
 ```bash
 sudo apt install -y git
-git clone https://github.com/andreariosa/debian-openbox
-cd debian-openbox
 ```
 
-Notes:
+### Usage Notes
 
-- The script expects to be run on Debian or a Debian-derivative where package names (e.g. `polybar`, `picom`) are available from apt.
-- Some optional packages (e.g. `code`) require external repositories. Either add the repo first or remove those entries from `packages.conf`.
-- Package categories are displayed in the same order as they appear in `packages.conf`. Duplicate package entries are ignored.
-- The main menu includes "Session defaults (Openbox)" to set Openbox as the default session or restore the previous default.
+- Scripts assume Debian or compatible derivatives with standard package naming (e.g., `picom`, `polybar` available via apt).
+- Optional packages requiring external repositories (e.g., `code`) must have those repos added beforehand, or entries removed from `packages.conf`.
+- Package categories are processed in `packages.conf` order; duplicates are silently ignored.
+- The main menu includes a "Session defaults" option to set Openbox as the default session.
 
-## Repository layout
+## Directory Structure
 
-- `install.sh` - main entrypoint and interactive menu
-- `lib/` - scripts implementing actions and helpers
-  - `utils.sh` - logging, prompts, and helper utilities
-  - `base.sh` - system-level setup (apt sources, timezone, locale)
-  - `components.sh` - optional components (DM, GPU, audio, snapshots)
-  - `openbox.sh` - install Openbox and related packages
-  - `packages.sh` - package-category parsing and theme application
-- `theme/` - theme templates (clean, dark, light)
-- `packages.conf` - optional package categories
+```
+.
+├── install.sh           Main entry point and interactive menu
+├── packages.conf        Package category configuration
+├── README.md            This file
+├── lib/                 Library scripts
+│   ├── base.sh          System configuration (apt sources, timezone, locale)
+│   ├── components.sh    Optional components (display manager, GPU, audio)
+│   ├── openbox.sh       Openbox and desktop stack installation
+│   ├── packages.sh      Package parsing and theme deployment
+│   └── utils.sh         Utilities (logging, prompts, helpers)
+└── theme/               Theme templates
+    └── clean/           Clean theme (default)
+        ├── openbox/     Openbox configuration
+        ├── picom/       Compositor settings
+        └── polybar/     Status bar configuration
+```
 
-## Available Packages and Components
+## Package Reference
+
+Regarding VirtualBox guest drivers and utilities, refer to the official manual: [https://www.virtualbox.org/manual/ch04.html](https://www.virtualbox.org/manual/ch04.html)
 
 | Section    | Subsection       | Option | Package Name(s)                                                                                                                                                                                                                                              | Purpose                                                  | Rationale                                                                                       |
 | ---------- | ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -85,14 +105,14 @@ Notes:
 | Components | GPU Drivers      | 2 [5]  | [`nvidia-driver`](https://packages.debian.org/search?keywords=nvidia-driver)                                                                                                                                                                                 | Official NVIDIA proprietary driver                       | Best performance and stability for NVIDIA GPUs                                                  |
 | Components | GPU Drivers      | 3 [5]  | [`firmware-amd-graphics`](https://packages.debian.org/search?keywords=firmware-amd-graphics)                                                                                                                                                                 | AMD GPU firmware                                         | Required for modern AMD GPUs on Debian                                                          |
 | Components | GPU Drivers      | 4 [5]  | [`xserver-xorg-video-intel`](https://packages.debian.org/search?keywords=xserver-xorg-video-intel)                                                                                                                                                           | Intel Xorg video driver                                  | Ensures proper acceleration on Intel iGPUs                                                      |
-| Components | GPU Drivers      | 5 [5]  | [`virtualbox-guest-dkms` `virtualbox-guest-x11` `virtualbox-guest-utils`](https://www.virtualbox.org/manual/ch04.html)                                                                                                                                       | VirtualBox guest drivers and utilities                   | Enables graphics acceleration, clipboard, and screen resizing in VirtualBox                     |
+| Components | GPU Drivers      | 5 [5]  | `virtualbox-guest-dkms` `virtualbox-guest-x11` `virtualbox-guest-utils`                                                                                                                                                                                      | VirtualBox guest drivers and utilities                   | Enables graphics acceleration, clipboard, and screen resizing in VirtualBox                     |
 | Components | Audio Stack      | 1 [2]  | [`pipewire`](https://packages.debian.org/search?keywords=pipewire) [`wireplumber`](https://packages.debian.org/search?keywords=wireplumber) [`pipewire-audio-client-libraries`](https://packages.debian.org/search?keywords=pipewire-audio-client-libraries) | Modern audio and media server                            | Replaces PulseAudio with lower latency and better flexibility                                   |
 | Components | Audio Stack      | 2 [2]  | [`pulseaudio`](https://packages.debian.org/search?keywords=pulseaudio) [`pulseaudio-utils`](https://packages.debian.org/search?keywords=pulseaudio-utils)                                                                                                    | Legacy audio server and tools                            | Kept as a stable fallback for maximum compatibility                                             |
 | Components | Timeshift        | 1 [1]  | [`timeshift`](https://packages.debian.org/search?keywords=timeshift)                                                                                                                                                                                         | System snapshot and restore utility                      | Adds safety to a minimal system without affecting performance                                   |
 
 ### Openbox Desktop Stack
 
-Packages are listed in installation and dependency **order**.
+Packages are listed in installation and dependency order.
 
 | Subsection     | Package Name(s)                                                                      | Purpose                                 | Rationale                                                   |
 | -------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ----------------------------------------------------------- |
@@ -105,35 +125,85 @@ Packages are listed in installation and dependency **order**.
 | Compositor     | [`picom`](https://packages.debian.org/search?keywords=picom)                         | Compositor for transparency and effects | Adds modern visuals without impacting performance           |
 | Panel          | [`polybar`](https://packages.debian.org/search?keywords=polybar)                     | Status bar and system panel             | Highly customizable replacement for traditional panels      |
 
-Notes: **GTK theme managers** (e.g. `lxappearance`) are intentionally not installed. The script automatically generates GTK configuration files, which can later be manually edited if needed.
+**Note:** GTK theme managers (e.g., `lxappearance`) are intentionally excluded. The installer automatically generates GTK configuration files, which can be edited manually as needed.
 
-## Themes & panel
+## Themes
 
-This project ships minimal theme templates under `theme/`. The installer can copy these templates into the invoking user's `~/.config/` directory when you apply a theme via the interactive menu.
+Minimal theme templates are provided in `theme/`. When a theme is selected via the interactive menu, the installer copies templates into the invoking user's `~/.config/` directory.
 
-Note: the project uses `polybar` in place of `tint2` for the panel. The repo does not ship a full `polybar` config; customize `~/.config/polybar/config` to match your bar name and launch command.
+The default theme is `clean`. Additional themes can be created by adding subdirectories with `openbox/`, `picom/`, and `polybar/` configuration subdirectories.
 
-## Customization
+**Panel:** The project uses `polybar` instead of `tint2`. No complete `polybar` configuration is shipped; users should customize `~/.config/polybar/config` with appropriate module names and launch commands.
 
-- To add a theme: create a `clean`, `dark`, or `light` subdirectory under `theme/` and add `openbox/`, `polybar/`, and `picom/` subfolders with files.
-- To change packaged components, edit the apt commands in `lib/openbox.sh` or the related functions in `lib/components.sh`.
-- Non-interactive automation: use `--yes` / `-y` when running `install.sh`.
+## Configuration
+
+### Adding Themes
+
+Create a theme subdirectory under `theme/` (e.g., `dark`, `light`) containing:
+
+```
+theme/
+└── dark/
+    ├── openbox/
+    │   ├── rc.xml
+    │   ├── menu.xml
+    │   └── autostart
+    ├── picom/
+    │   └── picom.conf
+    └── polybar/
+        └── config.ini
+```
+
+### Modifying Components
+
+Edit package lists in `lib/openbox.sh` and component functions in `lib/components.sh` to add or remove packages.
+
+### Non-Interactive Mode
+
+Use the `--yes` / `-y` flag to bypass all prompts:
+
+```bash
+sudo ./install.sh -y
+```
 
 ## Troubleshooting
 
-- If a package fails to install, check `/home/<invoker>/.postinstall/install.log` (the exact path is printed by the installer). The scripts log stdout/stderr for run commands into this log.
-- If theme files are not applied, verify permissions and that `$INVOKER_HOME` is writable by the installer or adjusted afterward.
-- If an optional package is missing, confirm the package exists in your Debian version or add the required external repo before running the installer.
+### Installation Failures
+
+The installer logs all commands to `~/.postinstall/install.log` (exact path printed during execution). Review this log for package or command failures:
+
+```bash
+tail -f ~/.postinstall/install.log
+```
+
+### Theme Application Issues
+
+If theme files are not copied to `~/.config/`, verify:
+
+- Invoking user has write permissions to `~/.config/`.
+- `$INVOKER_HOME` is correctly set in the environment.
+- Theme directory structure matches expectations.
+
+### Missing Packages
+
+Confirm the package exists in your Debian release with `apt search <package>`. For packages requiring external repositories, add the repository before running the installer or remove the entry from `packages.conf`.
 
 ## Contributing
 
-Contributions are welcome. When modifying behavior or adding new themes:
+Contributions are welcome. When proposing changes:
 
-1. Make changes in `lib/` and add theme files under `theme/`.
-2. Test locally by running `sudo ./install.sh` on a disposable Debian VM.
-3. Open a pull request with a clear description of changes and rationale.
+1. Modify scripts in `lib/` or add theme templates to `theme/`.
+2. Test thoroughly on a disposable Debian system.
+3. Submit a pull request with clear description and rationale.
 
-## Notes & safety
+### Future Improvements
 
-- These scripts perform system modifications and install packages as root. Review the scripts before running on production systems.
-- The project aims to be conservative about overwriting user files: the theme application backs up existing config files under `~/.postinstall/backups/`.
+- Improve the default `clean` theme to serve as a complete, usable reference setup, better aligned with installed packages and extended configuration files such as `.Xresources`, and with a more meaningful `packages.conf`.
+- Add concise markdown documentation linking to external Openbox, Picom, Polybar and X11 theming references to help users design and maintain custom themes.
+- Introduce optional graphical automation for X11-based sessions using tools such as `wmctrl` and `xdotool` to enable reproducible session layouts and scripted desktop workflows.
+
+## Security Considerations
+
+- These scripts perform system modifications with root privileges. **Review all scripts before executing on production systems.**
+- The installer creates backups of existing configuration files in `~/.postinstall/backups/` before applying themes.
+- All logging occurs in `~/.postinstall/install.log` for auditability.

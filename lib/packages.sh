@@ -1,11 +1,16 @@
 # lib/packages.sh
+#
+# Package configuration parsing and installation functions.
+# Handles packages.conf reading, category selection, and multi-package installation with progress.
 
-# Prevent accidental standalone execution
+# Prevent accidental standalone execution.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "This script must be sourced, not executed directly."
     exit 1
 fi
 
+# Parse packages.conf and populate associative arrays for categories and packages.
+# Args: $1 path to packages.conf, $2 output array for categories, $3 output array for keys.
 load_packages_conf() {
     local conf="$1"
     local -n out_cats="$2"
@@ -42,6 +47,8 @@ load_packages_conf() {
     return 0
 }
 
+# Build package list from user-selected category indices.
+# Deduplicates packages and reports invalid selections.
 select_packages_from_categories() {
     local -n cats_ref="$1"
     local -n keys_ref="$2"
@@ -71,6 +78,8 @@ select_packages_from_categories() {
 }
 
 
+# Ensure apt package index cache exists; update if missing.
+# Returns 0 on success, 1 on error, 2 if indexes still missing after update.
 ensure_apt_cache() {
     local has_lists=false
     if compgen -G "/var/lib/apt/lists/*_Packages" >/dev/null || \
@@ -97,6 +106,8 @@ ensure_apt_cache() {
     return 0
 }
 
+# Install packages one at a time with progress counter.
+# Reports failed packages at the end.
 progress_install() {
     local pkgs=("$@")
     local total=${#pkgs[@]}
@@ -131,6 +142,7 @@ progress_install() {
 # pkg2
 # blank lines and lines starting with # are ignored
 
+# Parse packages.conf, present categories, and install user-selected packages.
 parse_packages_conf() {
     local conf="$BASE_DIR/packages.conf"
     declare -A cats

@@ -1,11 +1,15 @@
 # lib/utils.sh
+#
+# Utility functions: logging, command execution, user prompts,
+# package operations, and repository file management.
 
-# Prevent accidental standalone execution
+# Prevent accidental standalone execution.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "This script must be sourced, not executed directly."
     exit 1
 fi
 
+# Color codes for terminal output.
 RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
@@ -13,19 +17,25 @@ BLUE="\033[1;34m"
 BOLD="\033[1m"
 RESET="\033[0m"
 
-# Logging helpers
+# === Logging Helpers ===
 
+# Log message with [LOG] prefix in blue.
 log() { echo -e "${BLUE}[LOG]${RESET} $*"; }
 success() { echo -e "${GREEN}[OK]${RESET} $*"; }
 warn() { echo -e "${YELLOW}[WARN]${RESET} $*"; }
 error() { echo -e "${RED}[ERROR]${RESET} $*"; }
 
+# Log message with timestamp to $LOG_FILE and echo to stdout.
 log_file() {
     local ts
     ts="$(date '+%Y-%m-%d %H:%M:%S')"
     echo "[$ts] $*" | tee -a "$LOG_FILE"
 }
 
+# === Command Execution ===
+
+# Execute command with environment variables, capture output to $LOG_FILE.
+# Supports leading VAR=value arguments. Reports errors with tail of log.
 run() {
     if [[ $# -eq 0 ]]; then
         error "run: missing command"
@@ -68,6 +78,8 @@ run() {
     return 0
 }
 
+# Execute command with output displayed to terminal and logged to $LOG_FILE.
+# Supports environment variables. Useful for interactive commands.
 run_with_output() {
     if [[ $# -eq 0 ]]; then
         error "run_with_output: missing command"
@@ -110,6 +122,8 @@ run_with_output() {
     return 0
 }
 
+# Execute command with live terminal logging via `script` command if available.
+# Preserves interactive behavior and TTY for password prompts.
 run_with_tty_log() {
     if [[ $# -eq 0 ]]; then
         error "run_with_tty_log: missing command"
@@ -143,6 +157,9 @@ run_with_tty_log() {
     return 0
 }
 
+# === Package Installation ===
+
+# Install packages via apt-get in non-interactive or interactive mode.
 apt_install() {
     if $YES_MODE; then
         run env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
@@ -152,6 +169,7 @@ apt_install() {
     fi
 }
 
+# Install packages with visual progress indicator. Prefers interactive TTY mode.
 apt_install_progress() {
     if $YES_MODE; then
         if ! run_with_output env DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical \
@@ -164,6 +182,7 @@ apt_install_progress() {
     fi
 }
 
+# Check if package is available in apt cache.
 package_available() {
     local pkg="$1"
     local candidate
@@ -171,12 +190,14 @@ package_available() {
     [[ -n "$candidate" && "$candidate" != "(none)" ]]
 }
 
-# Generic
+# === User Prompts & Interaction ===
 
+# Wait for user to press ENTER.
 pause() {
     read -rp "$(echo -e ${BOLD}Press ENTER to continue...${RESET})";
 }
 
+# Ask yes/no question. In YES_MODE, always returns 0 (yes).
 ask() {
     local q="$1"
     if $YES_MODE; then
@@ -187,8 +208,10 @@ ask() {
     case "$ans" in [yY]|[yY][eE][sS]) return 0 ;; *) return 1 ;; esac
 }
 
-# Repository file management
+# === Repository File Management ===
 
+# Set up repository files in ~/.postinstall: packages.conf, theme templates.
+# Handles backup creation, permission management, and ownership transfers.
 ensure_repo_files() {
     local errors=0
 

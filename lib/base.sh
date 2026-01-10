@@ -1,11 +1,14 @@
 # lib/base.sh
+#
+# System configuration functions: apt sources management, timezone and locale.
 
-# Prevent accidental standalone execution
+# Prevent accidental standalone execution.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "This script must be sourced, not executed directly."
     exit 1
 fi
 
+# Display system configuration submenu and handle user selections.
 system_config_menu() {
     while true; do
         clear
@@ -27,6 +30,8 @@ system_config_menu() {
     done
 }
 
+# Update a traditional /etc/apt/sources.list format file.
+# Ensures contrib, non-free, and non-free-firmware components are present.
 update_sources_list_file() {
     local file="$1"
     if [[ ! -f "$file" ]]; then
@@ -62,6 +67,8 @@ update_sources_list_file() {
     ' "$file" > "$file.tmp" && mv -f "$file.tmp" "$file"
 }
 
+# Update a DEB822 format /etc/apt/sources.list.d/*.sources file.
+# Ensures contrib, non-free, and non-free-firmware components are present.
 update_sources_deb822_file() {
     local file="$1"
     if [[ ! -f "$file" ]]; then
@@ -105,6 +112,7 @@ update_sources_deb822_file() {
     ' "$file" > "$file.tmp" && mv -f "$file.tmp" "$file"
 }
 
+# Enable contrib/non-free/non-free-firmware in apt sources and refresh cache.
 update_sources() {
     local codename
     codename="$(. /etc/os-release && echo "$VERSION_CODENAME")"
@@ -131,12 +139,14 @@ update_sources() {
     run apt-get update -y
 }
 
+# Update apt cache and upgrade all packages.
 system_upgrade() {
     log "Upgrading system..."
     run apt-get update -y
     run apt-get upgrade -y
 }
 
+# Configure system timezone interactively or via AUTO mode with sensible defaults.
 configure_timezone() {
     if $YES_MODE; then
         log "Auto-mode: skipping interactive timezone (user can set later)"
@@ -159,6 +169,7 @@ configure_timezone() {
     run timedatectl set-ntp true
 }
 
+# Configure system locale interactively or auto-select en_US.UTF-8 in non-interactive mode.
 configure_locale() {
     local ret=0
 
