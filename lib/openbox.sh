@@ -93,7 +93,7 @@ copy_theme_files() {
 # (compositor, panel, wallpaper manager). Optionally configure display resolution.
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    apt_install_progress xorg x11-xserver-utils openbox obconf menu nitrogen picom polybar
+    apt_install_progress xorg x11-xserver-utils openbox obconf rofi nitrogen picom polybar
     configure_display_resolution || warn "Resolution configuration skipped"
     success "Openbox installed"
 }
@@ -316,13 +316,15 @@ apply_theme_configs() {
     # Create backup of existing configs
     local backup_dir="$BASE_DIR/backups/$(date +%Y%m%d_%H%M%S)"
      if [[ -d "$INVOKER_HOME/.config/openbox" ]] || \
-         [[ -d "$INVOKER_HOME/.config/polybar" ]] || \
-         [[ -d "$INVOKER_HOME/.config/picom" ]]; then
+        [[ -d "$INVOKER_HOME/.config/picom" ]] || \
+        [[ -d "$INVOKER_HOME/.config/polybar" ]] || \
+        [[ -d "$INVOKER_HOME/.config/rofi" ]]; then
         mkdir -p "$backup_dir"
         log "Creating backup of existing configs in $backup_dir"
         cp -r "$INVOKER_HOME/.config/openbox" "$backup_dir/" 2>/dev/null || true
-        cp -r "$INVOKER_HOME/.config/polybar" "$backup_dir/" 2>/dev/null || true
         cp -r "$INVOKER_HOME/.config/picom" "$backup_dir/" 2>/dev/null || true
+        cp -r "$INVOKER_HOME/.config/polybar" "$backup_dir/" 2>/dev/null || true
+        cp -r "$INVOKER_HOME/.config/rofi" "$backup_dir/" 2>/dev/null || true
         chown -R "$INVOKER":"$INVOKER" "$backup_dir" 2>/dev/null || true
     fi
 
@@ -330,19 +332,24 @@ apply_theme_configs() {
 
     # Map typical locations
     local ob_dir="$INVOKER_HOME/.config/openbox"
-    local polybar_dir="$INVOKER_HOME/.config/polybar"
     local picom_dir="$INVOKER_HOME/.config/picom"
+    local polybar_dir="$INVOKER_HOME/.config/polybar"
+    local rofi_dir="$INVOKER_HOME/.config/rofi"
 
-    mkdir -p "$ob_dir" "$polybar_dir" "$picom_dir"
-    chown -R "$INVOKER":"$INVOKER" "$ob_dir" "$polybar_dir" "$picom_dir" 2>/dev/null || true
+    mkdir -p "$ob_dir" "$picom_dir" "$polybar_dir" "$rofi_dir"
+    chown -R "$INVOKER":"$INVOKER" "$ob_dir" "$picom_dir" "$polybar_dir" "$rofi_dir" 2>/dev/null || true
 
     # Copy files but ask before overwriting (auto-yes allowed)
     copy_theme_files "$src/openbox" "$ob_dir"
-    copy_theme_files "$src/polybar" "$polybar_dir"
     copy_theme_files "$src/picom" "$picom_dir"
+    copy_theme_files "$src/polybar" "$polybar_dir"
+    copy_theme_files "$src/rofi" "$rofi_dir"
 
     # Generate GTK configuration files automatically so lxappearance isn't required
     generate_gtk_configs "$theme"
+
+    # Generate helper scripts for rofi (power/exit menu)
+    generate_rofi_actions "$rofi_dir"
 
     log "Theme '$theme' applied (files copied to $INVOKER_HOME/.config/...)"
     return 0
@@ -402,6 +409,51 @@ generate_gtk_configs() {
     chown "$INVOKER":"$INVOKER" "$gtk2_file" 2>/dev/null || true
 
     log "GTK configs generated: $gtk3_dir/settings.ini, $gtk4_dir/settings.ini, $gtk2_file"
+    return 0
+}
+
+
+# Create a small rofi actions script for power/exit options.
+# Args: $1 = target rofi config dir (e.g. ~/.config/rofi)
+generate_rofi_actions() {
+    local rofi_dir="$1"
+    if [[ -z "$rofi_dir" ]]; then
+        warn "No rofi directory provided to generate_rofi_actions"
+        return 1
+    fi
+    mkdir -p "$rofi_dir"
+    local actions_file="$rofi_dir/actions.sh"
+    cat > "$actions_file" <<'EOF'
+#!/bin/sh
+
+options="⏻ Power off
+🗘 Reboot
+⏸ Suspend
+⏾ Hibernate
+🗙 Logout
+🗝 Lock session"
+
+execute() {
+    case "$1" in
+        *Power\ off) systemctl poweroff ;;
+        *Reboot) systemctl reboot ;;
+        *Suspend) systemctl suspend ;;
+        *Hibernate) systemctl hibernate ;;
+        *Logout) command -v openbox >/dev/null && openbox --exit ;;
+        *Lock\ session)
+            command -v xlock >/dev/null && xlock ||
+            command -v loginctl >/dev/null && loginctl lock-session
+            ;;
+    esac
+}
+
+[ $# -eq 0 ] && printf '%s\n' "$options" && exit
+[ "$1" = "show" ] && execute=$(printf '%s\n' "$options" | rofi -dmenu -i -p "Select Action") && [ -n "$execute" ] && execute "$execute" && exit
+execute "$1"
+EOF
+    chmod 755 "$actions_file" 2>/dev/null || true
+    chown "$INVOKER":"$INVOKER" "$actions_file" 2>/dev/null || true
+    log "Generated rofi actions script: $actions_file"
     return 0
 }
 
