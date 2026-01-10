@@ -115,16 +115,16 @@ Regarding VirtualBox guest drivers and utilities, refer to the official manual: 
 
 Packages are listed in installation and dependency order.
 
-| Subsection     | Package Name(s)                                                                      | Purpose                                 | Rationale                                                          |
-| -------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------ |
-| X Server       | [`xorg`](https://packages.debian.org/search?keywords=xorg)                           | Core X11 windowing system               | Mandatory graphical foundation for Openbox                         |
-| X Utilities    | [`x11-xserver-utils`](https://packages.debian.org/search?keywords=x11-xserver-utils) | X11 helper tools (xset, xrandr, etc.)   | Required for display, input, and power management                  |
-| Window Manager | [`openbox`](https://packages.debian.org/search?keywords=openbox)                     | Lightweight window manager              | Core of the desktop; minimal, fast, and highly configurable        |
-| Configuration  | [`obconf`](https://packages.debian.org/search?keywords=obconf)                       | GUI tool to configure Openbox           | Simplifies Openbox configuration without heavy dependencies        |
-| Launcher       | [`rofi`](https://packages.debian.org/search?keywords=rofi)                           | Application launcher and dynamic menus  | Lightweight launcher, integrates well with Openbox and user themes |
-| Wallpaper      | [`nitrogen`](https://packages.debian.org/search?keywords=nitrogen)                   | Wallpaper manager                       | Simple, lightweight, and Openbox-friendly                          |
-| Compositor     | [`picom`](https://packages.debian.org/search?keywords=picom)                         | Compositor for transparency and effects | Adds modern visuals without impacting performance                  |
-| Panel          | [`polybar`](https://packages.debian.org/search?keywords=polybar)                     | Status bar and system panel             | Highly customizable replacement for traditional panels             |
+| Subsection     | Package Name(s)                                                                                                                   | Purpose                                 | Rationale                                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------ |
+| X Server       | [`xorg`](https://packages.debian.org/search?keywords=xorg)                                                                        | Core X11 windowing system               | Mandatory graphical foundation for Openbox                         |
+| X Utilities    | [`x11-xserver-utils`](https://packages.debian.org/search?keywords=x11-xserver-utils)                                              | X11 helper tools (xset, xrandr, etc.)   | Required for display, input, and power management                  |
+| Window Manager | [`openbox`](https://packages.debian.org/search?keywords=openbox)                                                                  | Lightweight window manager              | Core of the desktop; minimal, fast, and highly configurable        |
+| Configuration  | [`obconf`](https://packages.debian.org/search?keywords=obconf)                                                                    | GUI tool to configure Openbox           | Simplifies Openbox configuration without heavy dependencies        |
+| Launcher       | [`rofi`](https://packages.debian.org/search?keywords=rofi) [`fonts-noto`](https://packages.debian.org/search?keywords=fonts-noto) | Application launcher and dynamic menus  | Lightweight launcher, integrates well with Openbox and user themes |
+| Wallpaper      | [`nitrogen`](https://packages.debian.org/search?keywords=nitrogen)                                                                | Wallpaper manager                       | Simple, lightweight, and Openbox-friendly                          |
+| Compositor     | [`picom`](https://packages.debian.org/search?keywords=picom)                                                                      | Compositor for transparency and effects | Adds modern visuals without impacting performance                  |
+| Panel          | [`polybar`](https://packages.debian.org/search?keywords=polybar)                                                                  | Status bar and system panel             | Highly customizable replacement for traditional panels             |
 
 **Note:** GTK theme managers (e.g., `lxappearance`) are intentionally excluded. The installer automatically generates GTK configuration files, which can be edited manually as needed.
 

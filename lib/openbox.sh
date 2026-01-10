@@ -93,7 +93,7 @@ copy_theme_files() {
 # (compositor, panel, wallpaper manager). Optionally configure display resolution.
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    apt_install_progress xorg x11-xserver-utils openbox obconf rofi nitrogen picom polybar
+    apt_install_progress xorg x11-xserver-utils openbox obconf rofi fonts-noto nitrogen picom polybar
     configure_display_resolution || warn "Resolution configuration skipped"
     success "Openbox installed"
 }
@@ -270,7 +270,7 @@ restore_previous_session() {
     success "Previous session defaults restored (if backups existed)"
 }
 
-# Display theme selection menu for Openbox, polybar, and picom configuration templates.
+# Display theme selection menu for Openbox, Picom, Polybar, and Rofi configuration templates.
 theme_menu() {
     clear
     echo "Choose configuration theme to apply - blank to skip"

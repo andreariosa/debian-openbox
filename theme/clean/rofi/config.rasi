@@ -1,6 +1,3 @@
 * {
-    background: #222222;
-    foreground: #dcdcdc;
-    selected:   #285577;
     font: "DejaVu Sans 10";
 }
