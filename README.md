@@ -158,7 +158,7 @@ theme/
 
 Edit package lists in `lib/openbox.sh` and component functions in `lib/components.sh` to add or remove packages.
 
-### Non-Interactive Mode
+### Non-interactive Mode
 
 Use the `--yes` / `-y` flag to bypass all prompts:
 
