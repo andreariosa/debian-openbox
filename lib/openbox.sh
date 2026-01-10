@@ -86,7 +86,7 @@ copy_theme_files() {
 
 install_openbox() {
     log "Installing Openbox desktop and helpers..."
-    apt_install_progress xorg openbox obconf menu polybar nitrogen picom lxappearance x11-xserver-utils
+    apt_install_progress xorg x11-xserver-utils openbox obconf menu nitrogen picom polybar
     configure_display_resolution || warn "Resolution configuration skipped"
     success "Openbox installed"
 }
@@ -263,11 +263,13 @@ theme_menu() {
     echo "1) Clean (minimal dummy template)"
     echo "2) Dark modern"
     echo "3) Light modern"
+    echo "4) Customize GTK settings"
     read -rp "> " tchoice
     case "$tchoice" in
         1) apply_theme_configs clean; pause ;;
         2) apply_theme_configs dark; pause ;;
         3) apply_theme_configs light; pause ;;
+        4) customize_gtk_configs; pause ;;
         "") log "Theme: skipped"; pause ;;
         *) echo "Invalid"; pause ;;
     esac
@@ -322,6 +324,223 @@ apply_theme_configs() {
     copy_theme_files "$src/polybar" "$polybar_dir"
     copy_theme_files "$src/picom" "$picom_dir"
 
+    # Generate GTK configuration files automatically so lxappearance isn't required
+    generate_gtk_configs "$theme"
+
     log "Theme '$theme' applied (files copied to $INVOKER_HOME/.config/...)"
+    return 0
+}
+
+generate_gtk_configs() {
+    # Generate GTK configuration files for GTK2/3/4 based on selected theme
+    local theme="$1"
+
+    # Define defaults per theme choice (Debian base-friendly values)
+    local gtk_theme="Adwaita"
+    local icon_theme="hicolor"
+    local cursor_theme="DMZ-White"
+    local font_name="Sans 10"
+
+    case "$theme" in
+        dark)
+            gtk_theme="Adwaita-dark"
+            ;;
+        light)
+            gtk_theme="Adwaita"
+            ;;
+        clean)
+            gtk_theme="Adwaita"
+            icon_theme="hicolor"
+            ;;
+        *)
+            ;;
+    esac
+
+    # GTK3/GTK4 settings.ini content
+    local gtk3_dir="$INVOKER_HOME/.config/gtk-3.0"
+    local gtk4_dir="$INVOKER_HOME/.config/gtk-4.0"
+    mkdir -p "$gtk3_dir" "$gtk4_dir"
+
+    local gtk_settings="[Settings]\n"
+    gtk_settings+="gtk-theme-name = $gtk_theme\n"
+    gtk_settings+="gtk-icon-theme-name = $icon_theme\n"
+    gtk_settings+="gtk-font-name = $font_name\n"
+    gtk_settings+="gtk-cursor-theme-name = $cursor_theme\n"
+    gtk_settings+="gtk-cursor-theme-size = 24\n"
+
+    printf "%b" "$gtk_settings" > "$gtk3_dir/settings.ini"
+    printf "%b" "$gtk_settings" > "$gtk4_dir/settings.ini"
+    chmod 644 "$gtk3_dir/settings.ini" "$gtk4_dir/settings.ini" 2>/dev/null || true
+    chown -R "$INVOKER":"$INVOKER" "$gtk3_dir" "$gtk4_dir" 2>/dev/null || true
+
+    # GTK2 legacy file
+    local gtk2_file="$INVOKER_HOME/.gtkrc-2.0"
+    {
+        printf 'gtk-theme-name="%s"\n' "$gtk_theme"
+        printf 'gtk-icon-theme-name="%s"\n' "$icon_theme"
+        printf 'gtk-font-name="%s"\n' "$font_name"
+    } > "$gtk2_file"
+    chmod 644 "$gtk2_file" 2>/dev/null || true
+    chown "$INVOKER":"$INVOKER" "$gtk2_file" 2>/dev/null || true
+
+    log "GTK configs generated: $gtk3_dir/settings.ini, $gtk4_dir/settings.ini, $gtk2_file"
+    return 0
+}
+
+customize_gtk_configs() {
+    # Interactive customization of GTK theme/icon/font/cursor based on installed options
+    local home="$INVOKER_HOME"
+    if $YES_MODE; then
+        log "Non-interactive mode: applying GTK customization from env vars or defaults"
+        local gtk_theme_val="${GTK_THEME:-Adwaita}"
+        local icon_theme_val="${ICON_THEME:-hicolor}"
+        local cursor_theme_val="${CURSOR_THEME:-DMZ-White}"
+        local font_val="${GTK_FONT:-Sans 10}"
+
+        # Persist settings (GTK3/GTK4)
+        local gtk3_dir="$home/.config/gtk-3.0"
+        local gtk4_dir="$home/.config/gtk-4.0"
+        mkdir -p "$gtk3_dir" "$gtk4_dir"
+        {
+            echo "[Settings]"
+            echo "gtk-theme-name = $gtk_theme_val"
+            echo "gtk-icon-theme-name = $icon_theme_val"
+            echo "gtk-font-name = $font_val"
+            echo "gtk-cursor-theme-name = $cursor_theme_val"
+            echo "gtk-cursor-theme-size = 24"
+        } > "$gtk3_dir/settings.ini"
+        cp -f "$gtk3_dir/settings.ini" "$gtk4_dir/settings.ini" 2>/dev/null || true
+        chmod 644 "$gtk3_dir/settings.ini" "$gtk4_dir/settings.ini" 2>/dev/null || true
+        chown -R "$INVOKER":"$INVOKER" "$gtk3_dir" "$gtk4_dir" 2>/dev/null || true
+
+        # GTK2
+        local gtk2_file="$home/.gtkrc-2.0"
+        {
+            printf 'gtk-theme-name="%s"\n' "$gtk_theme_val"
+            printf 'gtk-icon-theme-name="%s"\n' "$icon_theme_val"
+            printf 'gtk-font-name="%s"\n' "$font_val"
+        } > "$gtk2_file"
+        chmod 644 "$gtk2_file" 2>/dev/null || true
+        chown "$INVOKER":"$INVOKER" "$gtk2_file" 2>/dev/null || true
+
+        log "GTK customization saved (non-interactive): theme=$gtk_theme_val icon=$icon_theme_val font=$font_val cursor=$cursor_theme_val"
+        return 0
+    fi
+    local -a gtk_dirs=("/usr/share/themes" "$home/.themes" "$home/.local/share/themes")
+    local -a icon_dirs=("/usr/share/icons" "$home/.icons" "$home/.local/share/icons")
+    local -a gtk_opts=()
+    local -a icon_opts=()
+    local -a cursor_opts=()
+    local -a font_opts=()
+
+    # Gather GTK themes
+    for d in "${gtk_dirs[@]}"; do
+        if [[ -d "$d" ]]; then
+            for t in "$d"/*; do
+                [[ -d "$t" ]] && gtk_opts+=("$(basename "$t")")
+            done
+        fi
+    done
+    # Gather icon themes
+    for d in "${icon_dirs[@]}"; do
+        if [[ -d "$d" ]]; then
+            for i in "$d"/*; do
+                [[ -d "$i" ]] && icon_opts+=("$(basename "$i")")
+            done
+        fi
+    done
+    # Cursor themes: use icon theme names that contain a cursors subdir
+    for i in "${icon_opts[@]}"; do
+        if [[ -d "/usr/share/icons/$i/cursors" ]] || [[ -d "$home/.icons/$i/cursors" ]]; then
+            cursor_opts+=("$i")
+        fi
+    done
+    # Fonts: use fc-list if available
+    if command -v fc-list >/dev/null 2>&1; then
+        mapfile -t font_opts < <(fc-list : family | sed -E 's/\{.*\}//g' | sed -E 's/,.*$//' | sed '/^$/d' | sort -u)
+    fi
+
+    # Helper to present a numbered list and read a selection.
+    # Usage: choose <array-name> <prompt-text> [out-var]
+    # If [out-var] is provided the chosen value is written to that variable
+    # and the prompts are printed to the terminal (not captured). If no
+    # out-var is provided the chosen value is printed to stdout (legacy behavior).
+    choose() {
+        local -n _arr=$1
+        local prompt_text="$2"
+        local outvar="$3"
+
+        if [[ ${#_arr[@]} -eq 0 ]]; then
+            echo "No options available for: $prompt_text" >&2
+            return 1
+        fi
+
+        echo "Select $prompt_text (blank = skip):" >&2
+        local i=1
+        for v in "${_arr[@]}"; do
+            printf "%3d) %s\n" "$i" "$v" >&2
+            i=$((i+1))
+        done
+
+        local sel
+        # Prompt shown on stderr so it is visible even if caller captures stdout
+        read -rp "> " sel
+        if [[ -z "$sel" ]]; then
+            return 2
+        fi
+        if [[ ! "$sel" =~ ^[0-9]+$ ]] || (( sel < 1 )) || (( sel > ${#_arr[@]} )); then
+            echo "Invalid selection" >&2
+            return 1
+        fi
+
+        local selected="${_arr[$((sel-1))]}"
+        if [[ -n "$outvar" ]]; then
+            printf -v "$outvar" '%s' "$selected"
+        else
+            printf '%s' "$selected"
+        fi
+        return 0
+    }
+
+    local chosen_theme="" chosen_icon="" chosen_cursor="" chosen_font=""
+
+    choose gtk_opts "GTK theme" chosen_theme || true
+    choose icon_opts "icon theme" chosen_icon || true
+    choose cursor_opts "cursor theme" chosen_cursor || true
+    choose font_opts "font (family)" chosen_font || true
+
+    # Fall back to defaults from generate_gtk_configs when empty
+    local gtk_theme_val="${chosen_theme:-Adwaita}"
+    local icon_theme_val="${chosen_icon:-hicolor}"
+    local cursor_theme_val="${chosen_cursor:-DMZ-White}"
+    local font_val="${chosen_font:-Sans 10}"
+
+    # Persist settings (GTK3/GTK4)
+    local gtk3_dir="$home/.config/gtk-3.0"
+    local gtk4_dir="$home/.config/gtk-4.0"
+    mkdir -p "$gtk3_dir" "$gtk4_dir"
+    {
+        echo "[Settings]"
+        echo "gtk-theme-name = $gtk_theme_val"
+        echo "gtk-icon-theme-name = $icon_theme_val"
+        echo "gtk-font-name = $font_val"
+        echo "gtk-cursor-theme-name = $cursor_theme_val"
+        echo "gtk-cursor-theme-size = 24"
+    } > "$gtk3_dir/settings.ini"
+    cp -f "$gtk3_dir/settings.ini" "$gtk4_dir/settings.ini" 2>/dev/null || true
+    chmod 644 "$gtk3_dir/settings.ini" "$gtk4_dir/settings.ini" 2>/dev/null || true
+    chown -R "$INVOKER":"$INVOKER" "$gtk3_dir" "$gtk4_dir" 2>/dev/null || true
+
+    # GTK2
+    local gtk2_file="$home/.gtkrc-2.0"
+    {
+        printf 'gtk-theme-name="%s"\n' "$gtk_theme_val"
+        printf 'gtk-icon-theme-name="%s"\n' "$icon_theme_val"
+        printf 'gtk-font-name="%s"\n' "$font_val"
+    } > "$gtk2_file"
+    chmod 644 "$gtk2_file" 2>/dev/null || true
+    chown "$INVOKER":"$INVOKER" "$gtk2_file" 2>/dev/null || true
+
+    log "GTK customization saved: theme=$gtk_theme_val icon=$icon_theme_val font=$font_val cursor=$cursor_theme_val"
     return 0
 }
