@@ -77,7 +77,6 @@ select_packages_from_categories() {
     done
 }
 
-
 # Ensure apt package index cache exists; update if missing.
 # Returns 0 on success, 1 on error, 2 if indexes still missing after update.
 ensure_apt_cache() {

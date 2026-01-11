@@ -5,7 +5,7 @@ _A small, script-driven Debian post-install helper that sets up an Openbox-based
 - Configure system locale, timezone, and package sources.
 - Install and configure Openbox with minimal dependencies.
 - Deploy optional components (display manager, GPU drivers, audio stack).
-- Apply user configuration themes (Openbox, Picom, Polybar).
+- Apply user configuration themes (Openbox, Picom, Polybar, Rofi).
 - Provide idempotent, reusable shell library for automation.
 
 ## Non-goals
@@ -202,7 +202,7 @@ Contributions are welcome. When proposing changes:
 ### Future Improvements
 
 - Improve the default `clean` theme to serve as a complete, usable reference setup, better aligned with installed packages and extended configuration files such as `.Xresources`, and with a more meaningful `packages.conf`.
-- Add concise markdown documentation linking to external Openbox, Picom, Polybar and X11 theming references to help users design and maintain custom themes.
+- Add concise markdown documentation linking to external Openbox, Picom, Polybar, Rofi and X11 theming references to help users design and maintain custom themes.
 - Introduce optional graphical automation for X11-based sessions using tools such as `wmctrl` and `xdotool` to enable reproducible session layouts and scripted desktop workflows.
 
 ## Security Considerations

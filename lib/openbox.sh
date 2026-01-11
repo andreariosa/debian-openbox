@@ -345,6 +345,43 @@ apply_theme_configs() {
     copy_theme_files "$src/polybar" "$polybar_dir"
     copy_theme_files "$src/rofi" "$rofi_dir"
 
+    # If theme contains a .Xresources, install it into the user's home
+    if [[ -f "$src/.Xresources" ]]; then
+        local xres_target="$INVOKER_HOME/.Xresources"
+        if [[ -f "$xres_target" ]]; then
+            if [[ -n "$backup_dir" ]]; then
+                cp -a "$xres_target" "$backup_dir/" 2>/dev/null || true
+            fi
+            if $YES_MODE || ask "Overwrite $xres_target with theme .Xresources?"; then
+                local tmpx
+                tmpx="$(mktemp "${TMPDIR:-/tmp}/xresources.XXXXXX")"
+                if cp -f "$src/.Xresources" "$tmpx"; then
+                    chmod 644 "$tmpx" || true
+                    if mv -f "$tmpx" "$xres_target"; then
+                        chown "$INVOKER":"$INVOKER" "$xres_target" 2>/dev/null || true
+                        log "Installed .Xresources to $xres_target"
+                    else
+                        warn "Failed to move temporary .Xresources into place"
+                        rm -f "$tmpx" || true
+                    fi
+                else
+                    warn "Failed to copy theme .Xresources to temporary location"
+                    rm -f "$tmpx" || true
+                fi
+            else
+                log "Skipped installing .Xresources"
+            fi
+        else
+            if cp -f "$src/.Xresources" "$xres_target"; then
+                chmod 644 "$xres_target" 2>/dev/null || true
+                chown "$INVOKER":"$INVOKER" "$xres_target" 2>/dev/null || true
+                log "Installed .Xresources to $xres_target"
+            else
+                warn "Failed to install .Xresources to $xres_target"
+            fi
+        fi
+    fi
+
     # Generate GTK configuration files automatically so lxappearance isn't required
     generate_gtk_configs "$theme"
 
@@ -411,7 +448,6 @@ generate_gtk_configs() {
     log "GTK configs generated: $gtk3_dir/settings.ini, $gtk4_dir/settings.ini, $gtk2_file"
     return 0
 }
-
 
 # Create a small rofi actions script for power/exit options.
 # Args: $1 = target rofi config dir (e.g. ~/.config/rofi)

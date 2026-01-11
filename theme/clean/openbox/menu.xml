@@ -6,14 +6,15 @@
         <command>x-terminal-emulator</command>
       </action>
     </item>
-    <item label="File Manager">
-      <action name="Execute">
-        <command>sh -c 'xdg-open ~'</command>
-      </action>
-    </item>
     <item label="Web Browser">
       <action name="Execute">
         <command>x-www-browser</command>
+      </action>
+    </item>
+    <separator/>
+    <item label="File Manager">
+      <action name="Execute">
+        <command>pcmanfm</command>
       </action>
     </item>
     <item label="Applications">
@@ -21,17 +22,14 @@
         <command>sh -c 'rofi -show drun'</command>
       </action>
     </item>
-    <item label="Session">
-      <action name="Execute">
-        <command>sh -c '~/.config/rofi/actions.sh show'</command>
-      </action>
-    </item>
     <separator/>
     <item label="Reconfigure">
       <action name="Reconfigure"/>
     </item>
-    <item label="Exit">
-      <action name="Exit"/>
+    <item label="Session">
+      <action name="Execute">
+        <command>sh -c '~/.config/rofi/actions.sh show'</command>
+      </action>
     </item>
   </menu>
 </openbox_menu>
