@@ -1,2 +1,4 @@
+xterm*background: #222222
+xterm*foreground: #eeeeee
 xterm*faceName: Monospace
 xterm*faceSize: 12

@@ -1,3 +1,5 @@
+@theme "/usr/share/rofi/themes/Arc.rasi"
+
 * {
     font: "DejaVu Sans 10";
 }
