@@ -151,8 +151,8 @@ theme/
     │   └── autostart
     ├── picom/
     │   └── picom.conf
-    └── polybar/
-        └── config.ini
+    ├── polybar/
+    │   └── config.ini
     └── rofi/
         └── config.rasi
 ```
