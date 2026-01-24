@@ -212,6 +212,12 @@
       <command>xkill</command></action>
     </keybind>
 
+    <!-- Screenshot -->
+    <keybind key="Print">
+      <action name="Execute"><startupnotify><enabled>false</enabled><name>Screenshot</name></startupnotify>
+      <command>sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; scrot "%Y-%m-%d_%H-%M-%S_screenshot.png" -e "mv $f ~/Pictures/Screenshots/"'</command></action>
+    </keybind>
+
     <!-- Window tiling shortcuts -->
     <keybind key="W-Right"><action name="Unmaximize"/><action name="MoveResizeTo"><width>50%</width><height>100%</height><x>0</x><y>0</y></action></keybind>
     <keybind key="W-Left"><action name="Unmaximize"/><action name="MoveResizeTo"><width>50%</width><height>100%</height><x>0</x><y>0</y></action></keybind>
