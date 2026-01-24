@@ -167,9 +167,10 @@ parse_packages_conf() {
     for idx in "${!keys[@]}"; do
         echo "$((idx + 1))) ${keys[$idx]}"
     done
+    echo "a) All categories"
     echo "0) Cancel"
 
-    read -rp "Enter category numbers to install (e.g. 1 3), blank to skip: " sel
+    read -rp "Enter category numbers to install (e.g. 1 3) or 'a' for all, blank to skip: " sel
     if [[ -z "$sel" ]]; then
         log "User skipped optional packages installation"
         return 0
@@ -178,7 +179,16 @@ parse_packages_conf() {
     # Build package list
     local pkgs=()
     local invalid_entries=()
-    select_packages_from_categories cats keys "$sel" pkgs invalid_entries
+    local sel_all=""
+
+    if [[ "$sel" =~ ^([Aa]|all)$ ]]; then
+        for idx in "${!keys[@]}"; do
+            sel_all+="$((idx + 1)) "
+        done
+        select_packages_from_categories cats keys "$sel_all" pkgs invalid_entries
+    else
+        select_packages_from_categories cats keys "$sel" pkgs invalid_entries
+    fi
 
     if [[ ${#invalid_entries[@]} -gt 0 ]]; then
         warn "Ignored invalid selections: ${invalid_entries[*]}"
