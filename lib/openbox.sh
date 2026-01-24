@@ -113,7 +113,27 @@ configure_display_resolution() {
 
     if command -v xrandr >/dev/null 2>&1; then
         echo "Available display outputs and modes:"
-        if ! xrandr --query | awk '/ connected/ {print $1, $2, $3, $4}'; then
+        if ! xrandr --query | awk '
+            BEGIN { have=0 }
+            /^[A-Za-z0-9._-]+[[:space:]]+(connected|disconnected)/ {
+                if (have) print "";
+                name=$1; conn=($2=="connected"?"Yes":"No");
+                printf "Name = %s, Connected = %s\n", name, conn;
+                have=1;
+                mode_section=($2=="connected");
+                next
+            }
+            mode_section && /^[[:space:]]+[0-9]+x[0-9]+/ {
+                line=$0;
+                sub(/^[[:space:]]+/, "", line);
+                split(line, parts, /[[:space:]]+/);
+                mode=parts[1];
+                current = (line ~ /\*/ ? " (current)" : "");
+                printf "  - %s%s\n", mode, current;
+                next
+            }
+            END { }
+        '; then
             warn "Failed to read display modes via xrandr"
         fi
     else
@@ -123,7 +143,7 @@ configure_display_resolution() {
     local output
     local mode
     local rate
-    read -rp "Enter display output name (e.g. HDMI-1) - blank to skip: " output
+    read -rp "Enter display output name (e.g. HDMI-1, Virtual1) - blank to skip: " output
     if [[ -z "$output" ]]; then
         log "Resolution: skipped"
         return 0
