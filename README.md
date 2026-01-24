@@ -155,8 +155,8 @@ theme/
     │   └── config.ini
     ├── rofi/
     │   └── config.rasi
-    ├── .Xresources
-    └── .themes/
+    ├── .Xresources (Optional)
+    └── .themes/ (Optional)
         └── (Openbox theme directories)
 ```
 
@@ -208,7 +208,7 @@ Contributions are welcome. When proposing changes:
 
 ### Future Improvements
 
-- Improve the default `clean` theme to serve as a complete, usable reference setup, better aligned with installed packages and extended configuration files such as `.Xresources`, and with a more meaningful `packages.conf`.
+- Improve the`Dark modern` and `Light modern` themes by porting and adapting the [`Arc-Dark`](https://github.com/dglava/arc-openbox/tree/master/Arc-Dark/openbox-3) and [`Arc`](https://github.com/dglava/arc-openbox/tree/master/Arc/openbox-3) Openbox themes (dglava/arc-openbox), including Openbox files (rc.xml, themerc) and associated assets to produce polished dark and light variants that match the installer's defaults.
 - Add concise markdown documentation linking to external Openbox, Picom, Polybar, Rofi and X11 theming references to help users design and maintain custom themes.
 - Introduce optional graphical automation for X11-based sessions using tools such as `wmctrl` and `xdotool` to enable reproducible session layouts and scripted desktop workflows.
 
