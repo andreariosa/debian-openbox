@@ -382,6 +382,36 @@ apply_theme_configs() {
         fi
     fi
 
+    # If theme contains a .themes folder, install it into the user's home
+    if [[ -d "$src/.themes" ]]; then
+        local themes_target="$INVOKER_HOME/.themes"
+        if [[ -d "$themes_target" ]]; then
+            if [[ -n "$backup_dir" ]]; then
+                cp -a "$themes_target" "$backup_dir/" 2>/dev/null || true
+            fi
+            if $YES_MODE || ask "Overwrite $themes_target with theme .themes folder?"; then
+                rm -rf "$themes_target"
+                if cp -r "$src/.themes" "$themes_target"; then
+                    chmod -R 755 "$themes_target" 2>/dev/null || true
+                    chown -R "$INVOKER":"$INVOKER" "$themes_target" 2>/dev/null || true
+                    log "Installed .themes to $themes_target"
+                else
+                    warn "Failed to install .themes to $themes_target"
+                fi
+            else
+                log "Skipped installing .themes"
+            fi
+        else
+            if cp -r "$src/.themes" "$themes_target"; then
+                chmod -R 755 "$themes_target" 2>/dev/null || true
+                chown -R "$INVOKER":"$INVOKER" "$themes_target" 2>/dev/null || true
+                log "Installed .themes to $themes_target"
+            else
+                warn "Failed to install .themes to $themes_target"
+            fi
+        fi
+    fi
+
     # Generate GTK configuration files automatically so lxappearance isn't required
     generate_gtk_configs "$theme"
 

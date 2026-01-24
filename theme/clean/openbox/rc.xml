@@ -27,7 +27,7 @@
 
   <!-- Theme and font settings -->
   <theme>
-    <name>Clearlooks</name>
+    <name>Arc-Darker</name>
     <titleLayout>DSLIMC</titleLayout>
     <keepBorder>yes</keepBorder>
     <animateIconify>no</animateIconify>

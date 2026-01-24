@@ -153,9 +153,16 @@ theme/
     │   └── picom.conf
     ├── polybar/
     │   └── config.ini
-    └── rofi/
-        └── config.rasi
+    ├── rofi/
+    │   └── config.rasi
+    ├── .Xresources
+    └── .themes/
+        └── (Openbox theme directories)
 ```
+
+- **openbox/, picom/, polybar/, rofi/**: Configuration directories for each component. Files in these directories are copied to the corresponding `~/.config/` directories.
+- **.Xresources**: Optional X11 resource configuration file. If present, it will be installed to `~/.Xresources` in the user's home directory with user confirmation (automatically accepted in `--yes` mode).
+- **.themes/**: Optional directory containing Openbox theme directories. If present, the entire `.themes` folder will be copied to `~/.themes` in the user's home directory with user confirmation (automatically accepted in `--yes` mode). This allows bundling Openbox themes with your configuration.
 
 ### Modifying Components
 
