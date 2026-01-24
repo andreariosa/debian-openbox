@@ -12,7 +12,7 @@ fi
 system_config_menu() {
     while true; do
         clear
-        echo "=== System Configuration ==="
+        echo "=== System Configuration (submenu) ==="
         echo "1) Enable contrib/non-free & apt-get update"
         echo "2) System upgrade (apt-get upgrade)"
         echo "3) Configure timezone"

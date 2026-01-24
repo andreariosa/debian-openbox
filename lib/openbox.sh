@@ -170,7 +170,7 @@ configure_display_resolution() {
 session_menu() {
     while true; do
         clear
-        echo "=== Session Defaults ==="
+        echo "=== Session Defaults (submenu) ==="
         echo "1) Set Openbox as default session"
         echo "2) Restore previous session defaults"
         echo "0) Back"
@@ -270,23 +270,26 @@ restore_previous_session() {
     success "Previous session defaults restored (if backups existed)"
 }
 
-# Display theme selection menu for Openbox, Picom, Polybar, and Rofi configuration templates.
+# Display theme selection submenu for Openbox, Picom, Polybar, and Rofi configuration templates.
 theme_menu() {
-    clear
-    echo "Choose configuration theme to apply - blank to skip"
-    echo "1) Clean (minimal dummy template)"
-    echo "2) Dark modern"
-    echo "3) Light modern"
-    echo "4) Customize GTK settings"
-    read -rp "> " tchoice
-    case "$tchoice" in
-        1) apply_theme_configs clean; pause ;;
-        2) apply_theme_configs dark; pause ;;
-        3) apply_theme_configs light; pause ;;
-        4) customize_gtk_configs; pause ;;
-        "") log "Theme: skipped"; pause ;;
-        *) echo "Invalid"; pause ;;
-    esac
+    while true; do
+        clear
+        echo "=== Customize Desktop Theme (submenu) ==="
+        echo "1) Clean (minimal dummy template)"
+        echo "2) Dark modern"
+        echo "3) Light modern"
+        echo "4) Customize GTK settings"
+        echo "0) Back"
+        read -rp "> " tchoice
+        case "$tchoice" in
+            1) apply_theme_configs clean; pause ;;
+            2) apply_theme_configs dark; pause ;;
+            3) apply_theme_configs light; pause ;;
+            4) customize_gtk_configs; pause ;;
+            0) break ;;
+            *) echo "Invalid"; pause ;;
+        esac
+    done
 }
 
 # Apply selected theme (clean/dark/light) by copying configuration templates to ~/.config/.

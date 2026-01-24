@@ -13,7 +13,7 @@ fi
 components_menu() {
     while true; do
         clear
-        echo "=== Components & Hardware ==="
+        echo "=== Components & Hardware (submenu) ==="
         echo "1) Display Manager"
         echo "2) GPU Drivers (NVIDIA/AMD/Intel/VirtualBox)"
         echo "3) Audio Stack (PipeWire/PulseAudio/ALSA)"
@@ -111,7 +111,7 @@ audio_stack() {
 system_snapshots() {
     if ask "Install Timeshift for system snapshots?"; then
         apt_install timeshift
-        log "Timeshift installed; configure as needed"
+        log "Timeshift: installed, configure as needed"
     else
         log "Timeshift: skipped"
     fi

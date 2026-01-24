@@ -104,13 +104,13 @@ main_menu() {
     while true; do
         clear
         echo -e "${BOLD}=== Debian Post-Install ===${RESET}"
-        echo "1) System configuration (submenu)"
-        echo "2) Components & Hardware (submenu)"
+        echo "1) System Configuration (opens submenu)"
+        echo "2) Components & Hardware (opens submenu)"
         echo "3) Install Openbox"
-        echo "4) Apply Openbox theme"
-        echo "5) Install optional packages"
-        echo "6) Session defaults (Openbox)"
-        echo "7) Show install log ($LOG_FILE)"
+        echo "4) Install Extra Packages"
+        echo "5) Customize Desktop Theme (opens submenu)"
+        echo "6) Session Defaults (opens submenu)"
+        echo "7) Show Install Log ($LOG_FILE)"
         echo "0) Exit"
 
         if ! read -r -p "> " choice; then
@@ -143,15 +143,15 @@ main_menu() {
                 pause
                 ;;
             4)
-                if ! theme_menu; then
-                    error "Theme application failed"
-                fi
-                ;;
-            5)
                 if ! parse_packages_conf; then
                     error "Package installation failed"
                 fi
                 pause
+                ;;
+            5)
+                if ! theme_menu; then
+                    error "Theme application failed"
+                fi
                 ;;
             6)
                 if ! session_menu; then
