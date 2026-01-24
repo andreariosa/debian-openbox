@@ -1,4 +1,7 @@
-_A small, script-driven Debian post-install helper that sets up an Openbox-based desktop environment with optional themes and helper components._
+A small, script-driven Debian post-install helper that sets up an Openbox-based desktop environment with optional themes and helper components.
+
+![Desktop preview](docs/screenshots/desktop.png)
+_Clean theme with [Ceratopsian (DebianArt)](https://wiki.debian.org/DebianArt/Themes/Ceratopsian) wallpaper._
 
 ## Scope
 

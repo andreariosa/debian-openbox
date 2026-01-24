@@ -215,7 +215,7 @@
     <!-- Screenshot -->
     <keybind key="Print">
       <action name="Execute"><startupnotify><enabled>false</enabled><name>Screenshot</name></startupnotify>
-      <command>sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; scrot "%Y-%m-%d_%H-%M-%S_screenshot.png" -e "mv $f ~/Pictures/Screenshots/"'</command></action>
+      <command>scrot '%Y-%m-%d_%H-%M-%S_screenshot.png' -e 'mkdir -p "Pictures/Screenshots/"; mv "$f" "Pictures/Screenshots/"'</command></action>
     </keybind>
 
     <!-- Window tiling shortcuts -->
